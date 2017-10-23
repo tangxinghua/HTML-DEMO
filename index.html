@@ -39,7 +39,10 @@
 			right: 0;
 			top: 0;
 			background-color: #CCC0C0;
+			text-align: center;
 		}
+		
+		#timeShow {}
 	</style>
 	<script>
 		window.onload = function() {
@@ -53,9 +56,27 @@
 
 			var score = 0; //得分
 			var total = 100; //总分制
-			var time = 100;	//时间制
+			var time = 100; //时间制
 			var speed = 1; //速度 (分4档，根据窗口高度自适应)
 			var rate = Math.max(1, ~~(wH / 400)); //(根据窗口高度自适应)
+
+			var t = 0;
+			var goalShow = document.getElementById('goalShow');
+			var timeShow = document.getElementById('timeShow');
+			goalShow.innerHTML = score + "/" + total;
+
+			function toDub(n) {
+				return n < 10 ? "0" + n : "" + n;
+			}
+
+			var timer = setInterval(function() {
+				t++;
+				var h = parseInt(t / 216000)
+				var m = parseInt(t / 3600)
+				var s = parseInt(t / 60 % 60);
+				var l = parseInt(t % 60);
+				timeShow.innerHTML = toDub(h) + ":" + toDub(m) + ":" + toDub(s) + ":" + toDub(l);
+			}, 1000 / 60);
 
 			//添加气球
 			var init = function(num, speed) {
@@ -67,6 +88,7 @@
 					oBalloon.style.top = wH + 　'px';
 					oBalloon.style.left = Math.max(0, ~~(Math.random() * wW - bSize)) + 'px';
 					oBalloon.speed = Math.max(2 * speed * rate, ~~(Math.random() * 5 * speed * rate));
+					oBalloon.flag = true;
 					oBalloons.push(oBalloon);
 					fragment.appendChild(oBalloon);
 				}
@@ -106,23 +128,27 @@
 
 			//气球点击事件
 			document.body.addEventListener('click', function(e) {
-				if('balloon' === e.target.className.toLowerCase()) {
+				if('balloon' === e.target.className.toLowerCase() && e.target.flag) {
+					e.target.flag = false;
 					boom.call(e.target, function() {
 						score++;
+						goalShow.innerHTML = score + "/" + total;
+						if(score >= total) {
+							clearInterval(timer);
+						}
 					});
 				}
 			});
 
-			//
 			init(num, speed);
 			setTimeout(move, 1000 / 30);
-			//setInterval(move, 1000/30);
 		}
 	</script>
 
 	<body>
 		<div class="goal">
-			
+			<h4 id="goalShow"></h4>
+			<h4 id="timeShow"></h4>
 		</div>
 	</body>
 
