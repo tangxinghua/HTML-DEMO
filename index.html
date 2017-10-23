@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>Balloon</title>
+	</head>
+	<style>
+		body {
+			background-color: #DDDDDD;
+			overflow: hidden;
+		}
+		
+		.balloon {
+			position: absolute;
+			#width: 160px;
+			#height: 160px;
+			background-color: #EEEEEE;
+			border-radius: 160px 160px 60px 160px;
+			transform: rotate(45deg);
+			box-shadow: -8px -8px 60px -8px inset;
+		}
+		
+		.balloon:after {
+			position: absolute;
+			content: "";
+			bottom: 0;
+			right: 0;
+			border: 8px solid transparent;
+			border-radius: 50%;
+			border-right-color: #5D5C5C;
+			transform: rotate(45deg);
+		}
+		
+		.goal {
+			position: absolute;
+			width: 150px;
+			height: 100px;
+			right: 0;
+			top: 0;
+			background-color: #CCC0C0;
+		}
+	</style>
+	<script>
+		window.onload = function() {
+			var wW = window.innerWidth; //窗口宽度
+			var wH = window.innerHeight; //窗口高度
+
+			var num = 10; //初始气球数
+			var oBalloons = []; //气球集
+			var bSize = 160 / Math.max(1, ~~(2000 / wW)); //气球大小 (根据窗口自适应)
+			//alert(wW + "==" + wH);
+
+			var score = 0; //得分
+			var total = 100; //总分制
+			var time = 100;	//时间制
+			var speed = 1; //速度 (分4档，根据窗口高度自适应)
+			var rate = Math.max(1, ~~(wH / 400)); //(根据窗口高度自适应)
+
+			//添加气球
+			var init = function(num, speed) {
+				var fragment = document.createDocumentFragment();
+				for(var i = 0; i < num; i++) {
+					var oBalloon = document.createElement('div');
+					oBalloon.className = 'balloon';
+					oBalloon.style.width = oBalloon.style.height = bSize + 'px';
+					oBalloon.style.top = wH + 　'px';
+					oBalloon.style.left = Math.max(0, ~~(Math.random() * wW - bSize)) + 'px';
+					oBalloon.speed = Math.max(2 * speed * rate, ~~(Math.random() * 5 * speed * rate));
+					oBalloons.push(oBalloon);
+					fragment.appendChild(oBalloon);
+				}
+				document.body.appendChild(fragment);
+			}
+
+			//气球运动轨迹
+			var move = function() {
+				for(var i = 0; i < oBalloons.length; i++) {
+					var oBalloon = oBalloons[i];
+					if(oBalloon.offsetTop + bSize > 0) {
+						oBalloon.style.top = oBalloon.offsetTop - oBalloon.speed + 'px';
+					} else {
+						oBalloon.parentNode.removeChild(oBalloon);
+						oBalloons.splice(oBalloons.lastIndexOf(oBalloon), 1);
+						speed = Math.max(speed, 1 + ~~(score / 25));
+						if((score + oBalloons.length) < total) {
+							init(1, speed);
+						}
+					}
+				}
+				oBalloons.length && setTimeout(move, 1000 / 30);
+			}
+
+			//气球点中效果
+			var boom = function(func) {
+				if(this.offsetWidth > 0) {
+					this.speed++;
+					this.style.width = this.offsetWidth - 10 + "px";
+					this.style.left = this.offsetLeft + 5 + 'px';
+					this.style.height = this.offsetHeight - 10 + "px";
+					setTimeout(boom.bind(this, func), 1000 / 30);
+				} else {
+					func && func();
+				}
+			}
+
+			//气球点击事件
+			document.body.addEventListener('click', function(e) {
+				if('balloon' === e.target.className.toLowerCase()) {
+					boom.call(e.target, function() {
+						score++;
+					});
+				}
+			});
+
+			//
+			init(num, speed);
+			setTimeout(move, 1000 / 30);
+			//setInterval(move, 1000/30);
+		}
+	</script>
+
+	<body>
+		<div class="goal">
+			
+		</div>
+	</body>
+
+</html>
